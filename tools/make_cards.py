@@ -1,4 +1,4 @@
-"""새 여행카드 배경 4장 생성 (야경 / 드론쇼 / 해변 산책 / 일출).
+"""추가 여행카드 배경 생성 (야경 / 드론쇼 / 해변 산책 / 일출 / 초콜릿 광안대교 / 벚꽃 / 해변 실루엣).
 
 기존 카드(images/card-*.jpg)와 같은 640x800 레이아웃:
 상단 타이틀, 가운데 광안대교, 문구 상자(83~560, 495~672, 닉네임 포함), 하단 로고.
@@ -428,6 +428,191 @@ def sunrise():
     return overlay(img, quote_color=(190, 100, 90))
 
 
+def choco():
+    img = sky_and_sea(
+        [(0, (74, 36, 24)), (0.5, (150, 80, 50)), (0.85, (220, 150, 104)), (1, (240, 190, 140))],
+        [(0, (150, 90, 56)), (0.25, (112, 62, 38)), (1, (64, 32, 20))])
+    # 초콜릿 바다의 광택(물결 하이라이트)
+    gl = glow_layer()
+    gd = ImageDraw.Draw(gl)
+    rnd = random.Random(51)
+    for i in range(26):
+        y0 = HORIZON + 8 + i * 11
+        amp, ph, ln = rnd.uniform(1.5, 4), rnd.uniform(0, 6), rnd.uniform(40, 120)
+        x0 = rnd.uniform(-40, 600)
+        pts = [(p(x), p(y0 + amp * math.sin(x / 18 + ph))) for x in np.arange(x0, x0 + ln, 2)]
+        gd.line(pts, fill=(255, 226, 190, rnd.randint(60, 140)), width=p(1.2 + i * 0.06))
+    img = composite(img, gl.filter(ImageFilter.GaussianBlur(S * 0.8)))
+    d = ImageDraw.Draw(img)
+    skyline(d, (84, 44, 28), seed=8)
+    # 다크초콜릿 다리
+    img = bridge(img, (56, 26, 14, 255), 130)
+    # 화이트초콜릿 드리즐: 케이블 위 크림 선 + 방울
+    dl = glow_layer()
+    dd = ImageDraw.Draw(dl)
+    cream = (250, 236, 214, 255)
+    dd.line([(p(x), p(cable_y(x) - 1)) for x in np.arange(118, 661, 2)], fill=cream, width=p(1.3))
+    for x in np.arange(128, 660, 17):
+        y = cable_y(x)
+        h = rnd.uniform(3, 8)
+        dd.line([(p(x), p(y)), (p(x), p(y + h))], fill=cream, width=p(1.2))
+        dd.ellipse([p(x - 1.4), p(y + h - 1.2), p(x + 1.4), p(y + h + 1.6)], fill=cream)
+    for tx in TOWERS:  # 주탑 꼭대기 초콜릿 조각
+        dd.rounded_rectangle([p(tx - 9), p(TOP_Y - 14), p(tx + 9), p(TOP_Y - 3)], radius=p(2), fill=(96, 50, 28, 255))
+        dd.line([(p(tx), p(TOP_Y - 14)), (p(tx), p(TOP_Y - 3))], fill=(130, 74, 44, 255), width=S)
+    img = composite(img, dl)
+    # 하늘에 떠 있는 초콜릿 조각 / 하트 / 스프링클
+    fl = glow_layer()
+    fd = ImageDraw.Draw(fl)
+    for cx, cy, sz, ang in ((70, 250, 22, -12), (590, 245, 18, 15), (150, 300, 12, 20), (600, 300, 13, -8)):
+        piece = Image.new('RGBA', (p(sz * 2.2), p(sz * 2.2)), (0, 0, 0, 0))
+        pd = ImageDraw.Draw(piece)
+        o = p(sz * 0.6)
+        pd.rounded_rectangle([o, o, o + p(sz), o + p(sz)], radius=p(2), fill=(92, 48, 26, 255))
+        pd.line([(o + p(sz / 2), o), (o + p(sz / 2), o + p(sz))], fill=(128, 72, 42, 255), width=S)
+        pd.line([(o, o + p(sz / 2)), (o + p(sz), o + p(sz / 2))], fill=(128, 72, 42, 255), width=S)
+        pd.line([(o + S, o + S), (o + p(sz) - S, o + S)], fill=(170, 110, 72, 255), width=S)
+        piece = piece.rotate(ang, resample=Image.BICUBIC)
+        fl.alpha_composite(piece, (p(cx - sz * 1.1), p(cy - sz * 1.1)))
+
+    def heart(cx, cy, r, col):
+        pts = []
+        for t in np.linspace(0, 2 * math.pi, 60):
+            x = 16 * math.sin(t) ** 3
+            y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+            pts.append((p(cx + x * r / 16), p(cy - y * r / 16)))
+        fd.polygon(pts, fill=col)
+
+    for cx, cy, r in ((40, 300, 8), (560, 270, 7), (110, 225, 5), (520, 312, 5)):
+        heart(cx, cy, r, (240, 120, 150, 255))
+    for _ in range(40):
+        x, y = rnd.choice([rnd.uniform(10, 150), rnd.uniform(490, 630)]), rnd.uniform(215, 340)
+        a = rnd.uniform(0, math.pi)
+        c = rnd.choice([(255, 150, 180), (255, 236, 200), (140, 210, 255), (255, 210, 110)])
+        fd.line([(p(x), p(y)), (p(x + 4 * math.cos(a)), p(y + 4 * math.sin(a)))], fill=c + (255,), width=p(1.4))
+    img = composite(img, fl)
+    img = shore(img, [(0, (140, 92, 60)), (1, (84, 52, 34))], foam=(250, 232, 206), wet=(110, 66, 40, 150), top=655, seed=15)
+    return overlay(img, quote_color=(250, 226, 196))
+
+
+def blossom():
+    img = sky_and_sea(
+        [(0, (96, 150, 214)), (0.55, (170, 200, 236)), (0.9, (244, 214, 226)), (1, (252, 230, 236))],
+        [(0, (150, 196, 226)), (0.3, (98, 164, 206)), (1, (70, 138, 186))])
+    d = ImageDraw.Draw(img)
+    skyline(d, (170, 184, 210), seed=9)
+    img = water_texture(img, HORIZON, 800, (255, 255, 255, 70), (40, 100, 150, 50), density=1000, seed=9)
+    img = bridge(img, (116, 128, 160, 255), 120)
+    img = shore(img, [(0, (240, 218, 206)), (1, (214, 186, 176))], foam=(255, 255, 255), wet=(206, 180, 176, 150), top=655, seed=16)
+
+    rnd = random.Random(61)
+    br = glow_layer()
+    bd = ImageDraw.Draw(br)
+    flowers = []
+
+    def branch(x, y, ang, length, width, depth):
+        x2, y2 = x + length * math.cos(ang), y + length * math.sin(ang)
+        bd.line([(p(x), p(y)), (p(x2), p(y2))], fill=(74, 46, 44, 255), width=max(S, p(width)))
+        bd.ellipse([p(x2 - width / 2), p(y2 - width / 2), p(x2 + width / 2), p(y2 + width / 2)], fill=(74, 46, 44, 255))
+        if depth == 0 or length < 10:
+            flowers.append((x2, y2))
+            return
+        for _ in range(2 if depth > 1 else 3):
+            branch(x2, y2, ang + rnd.uniform(-0.7, 0.7), length * rnd.uniform(0.6, 0.78), width * 0.68, depth - 1)
+        if depth <= 2:
+            flowers.append(((x + x2) / 2, (y + y2) / 2))
+
+    branch(-10, 360, -0.55, 70, 9, 4)
+    branch(-10, 250, -0.2, 60, 7, 3)
+    branch(650, 372, math.pi + 0.42, 66, 9, 4)
+    branch(650, 290, math.pi + 0.1, 42, 6, 3)
+    img = composite(img, br)
+    fl = glow_layer()
+    fd = ImageDraw.Draw(fl)
+    pinks = [(255, 196, 214), (255, 178, 202), (252, 214, 226), (255, 232, 238)]
+
+    def flower(x, y, r):
+        c = rnd.choice(pinks)
+        for k in range(5):
+            a = k * 2 * math.pi / 5 + rnd.uniform(0, 0.3)
+            px, py = x + r * 0.6 * math.cos(a), y + r * 0.6 * math.sin(a)
+            fd.ellipse([p(px - r * 0.55), p(py - r * 0.55), p(px + r * 0.55), p(py + r * 0.55)], fill=c + (245,))
+        fd.ellipse([p(x - r * 0.25), p(y - r * 0.25), p(x + r * 0.25), p(y + r * 0.25)], fill=(236, 110, 140, 255))
+
+    for fx, fy in flowers:
+        for _ in range(7):
+            flower(fx + rnd.uniform(-14, 14), fy + rnd.uniform(-12, 12), rnd.uniform(4, 7))
+    # 흩날리는 꽃잎 (문구 상자 자리는 비움)
+    for _ in range(90):
+        x, y = rnd.uniform(0, 640), rnd.uniform(40, 790)
+        if 83 < x < 560 and 495 < y < 672:
+            continue
+        a = rnd.uniform(0, math.pi)
+        r = rnd.uniform(2, 4)
+        pet = [(p(x + r * math.cos(a + t) * (1 if k % 2 == 0 else 0.45)), p(y + r * math.sin(a + t) * (1 if k % 2 == 0 else 0.45)))
+               for k, t in enumerate(np.linspace(0, 2 * math.pi, 4, endpoint=False))]
+        fd.polygon(pet, fill=rnd.choice(pinks) + (rnd.randint(170, 240),))
+    img = composite(img, fl)
+    return overlay(img, quote_color=(214, 96, 132), shadow=0.5, bottom_shade=0.5)
+
+
+def silhouette():
+    img = sky_and_sea(
+        [(0, (54, 50, 110)), (0.45, (150, 96, 150)), (0.8, (246, 150, 120)), (1, (255, 196, 130))],
+        [(0, (238, 160, 120)), (0.25, (150, 100, 130)), (1, (60, 50, 90))])
+    # 지는 해
+    sun = glow_layer()
+    ImageDraw.Draw(sun).ellipse([p(420), p(360), p(470), p(410)], fill=(255, 226, 170, 255))
+    top = glow_layer()
+    top.paste(sun.crop((0, 0, W, p(HORIZON))), (0, 0))
+    img = composite(img, top)
+    img = add_glow(img, top, 20, 1.0)
+    d = ImageDraw.Draw(img)
+    skyline(d, (80, 60, 104), seed=10)
+    img = water_texture(img, HORIZON, 800, (255, 200, 160, 80), (40, 30, 70, 70), seed=10)
+    img = bridge(img, (70, 52, 90, 255), 110)
+    img = shore(img, [(0, (190, 130, 120)), (0.3, (140, 96, 104)), (1, (72, 52, 80))], foam=(255, 226, 210),
+                wet=(170, 116, 116, 140), top=432, seed=17)
+
+    ppl = glow_layer()
+    pd = ImageDraw.Draw(ppl)
+    ink = (40, 28, 52, 255)
+
+    def sitting(x, y, h, lean=0):
+        hr = h * 0.13
+        pd.ellipse([p(x + lean - hr), p(y - h), p(x + lean + hr), p(y - h + 2 * hr)], fill=ink)
+        pd.polygon([(p(x + lean * 0.7 - h * 0.17), p(y - h + 2.2 * hr)), (p(x + lean * 0.7 + h * 0.17), p(y - h + 2.2 * hr)),
+                    (p(x + h * 0.26), p(y - h * 0.08)), (p(x - h * 0.26), p(y - h * 0.08))], fill=ink)
+        pd.ellipse([p(x - h * 0.3), p(y - h * 0.16), p(x + h * 0.3), p(y + h * 0.04)], fill=ink)
+
+    def standing(x, y, h):
+        hr = h * 0.1
+        pd.ellipse([p(x - hr), p(y - h), p(x + hr), p(y - h + 2 * hr)], fill=ink)
+        pd.polygon([(p(x - h * 0.13), p(y - h + 2.3 * hr)), (p(x + h * 0.13), p(y - h + 2.3 * hr)),
+                    (p(x + h * 0.11), p(y - h * 0.45)), (p(x - h * 0.11), p(y - h * 0.45))], fill=ink)
+        for sx in (-1, 1):
+            pd.rectangle([p(x + sx * h * 0.06 - h * 0.045), p(y - h * 0.47), p(x + sx * h * 0.06 + h * 0.045), p(y)], fill=ink)
+            pd.line([(p(x + sx * h * 0.13), p(y - h + 2.5 * hr)), (p(x + sx * h * 0.19), p(y - h * 0.5))], fill=ink, width=p(h * 0.06))
+
+    # 나란히 앉은 두 사람
+    sitting(196, 478, 46, lean=4)
+    sitting(226, 478, 42, lean=-4)
+    # 손잡은 가족 (어른 둘 + 아이)
+    standing(418, 482, 62)
+    standing(446, 482, 38)
+    standing(472, 482, 58)
+    pd.line([(p(418 + 62 * 0.19), p(482 - 31)), (p(446 - 38 * 0.19), p(482 - 19))], fill=ink, width=p(2.2))
+    pd.line([(p(446 + 38 * 0.19), p(482 - 19)), (p(472 - 58 * 0.19), p(482 - 29))], fill=ink, width=p(2.2))
+    sh = glow_layer()
+    sd = ImageDraw.Draw(sh)
+    for x0, x1 in ((170, 252), (404, 488)):
+        sd.ellipse([p(x0), p(478), p(x1), p(488)], fill=(40, 28, 52, 90))
+    img = composite(img, sh.filter(ImageFilter.GaussianBlur(p(2))))
+    img = composite(img, ppl)
+    return overlay(img, quote_color=(170, 90, 110))
+
+
 if __name__ == '__main__':
-    for name, fn in (('night', night), ('drone', drone), ('beach', beach), ('sunrise', sunrise)):
+    for name, fn in (('night', night), ('drone', drone), ('beach', beach), ('sunrise', sunrise),
+                     ('choco', choco), ('blossom', blossom), ('silhouette', silhouette)):
         finish(fn(), name)
