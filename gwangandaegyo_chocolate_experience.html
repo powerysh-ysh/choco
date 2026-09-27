@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1464E6">
+  <title>광안대교 초콜릿 체험</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #1464E6;
+      --deep: #0649AD;
+      --white: #ffffff;
+      --tint: #eef4ff;
+      --ink: #172238;
+      --muted: #5f6b80;
+      --line: #dbe3ee;
+      --panel: #f4f7fc;
+      --shadow: 0 24px 70px rgba(6, 73, 173, .16);
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #e9f1fd; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,.95), transparent 28rem),
+        linear-gradient(150deg, #f1f6ff 0%, #dce8fb 100%);
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(20,100,230,.28);
+      outline-offset: 2px;
+    }
+    .shell { width: min(100%, 460px); min-height: 100vh; margin: 0 auto; padding: 22px 14px; }
+    .app {
+      min-height: calc(100vh - 44px);
+      overflow: hidden;
+      border: 1px solid rgba(6,73,173,.14);
+      border-radius: 30px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+    .topbar { position: sticky; top: 0; z-index: 5; padding: 18px 22px 12px; background: rgba(255,255,255,.96); }
+    .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .12em; }
+    .logo { color: var(--blue); font-weight: 800; }
+    #pageCount { color: var(--muted); letter-spacing: .04em; }
+    .progress { height: 5px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: #e5ecf7; }
+    .progress > div { height: 100%; width: 10%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--deep)); transition: width .28s ease; }
+    main { padding: 16px 22px 24px; }
+    .page { display: none; min-height: 660px; animation: enter .28s ease; }
+    .page.active { display: flex; flex-direction: column; }
+    @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .eyebrow { margin: 0 0 8px; color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 13px; font-size: 29px; line-height: 1.3; letter-spacing: -.045em; }
+    h2 { margin-bottom: 10px; font-size: 24px; line-height: 1.35; letter-spacing: -.035em; }
+    h1 em, h2 em { color: var(--blue); font-style: normal; }
+    .desc { color: var(--muted); font-size: 14px; line-height: 1.72; word-break: keep-all; }
+    .note { margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; word-break: keep-all; }
+
+    .hero {
+      height: 250px; margin-bottom: 24px; border-radius: 22px;
+      background: #7fb7ec center top / cover no-repeat;
+      box-shadow: 0 14px 35px rgba(6,73,173,.16);
+    }
+
+    .actions { display: flex; gap: 10px; margin-top: auto; padding-top: 24px; }
+    .btn { min-height: 52px; border: 0; border-radius: 14px; padding: 0 17px; font-weight: 800; transition: transform .12s ease, opacity .15s ease, background .15s ease; }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { flex: 2; color: var(--white); background: var(--blue); box-shadow: 0 8px 22px rgba(20,100,230,.24); }
+    .btn-primary:hover:not([disabled]) { background: var(--deep); }
+    .btn-secondary { flex: 1; color: var(--deep); border: 1px solid var(--line); background: var(--white); }
+    .btn[disabled] { cursor: not-allowed; opacity: .4; box-shadow: none; }
+
+    .scene-grid { display: grid; gap: 11px; margin-top: 10px; }
+    .scene-option { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 4px; padding: 9px; text-align: left; color: inherit; border: 1.5px solid var(--line); border-radius: 17px; background: var(--white); }
+    .scene-option.selected { border-color: var(--blue); background: var(--tint); box-shadow: 0 0 0 3px rgba(20,100,230,.12); }
+    .scene-thumb { aspect-ratio: 4 / 5; border-radius: 10px; background: #cfe0f7 center / cover no-repeat; }
+    .scene-copy { padding: 6px 10px; }
+    .scene-copy strong { display: block; margin-bottom: 5px; font-size: 15px; }
+    .scene-option.selected .scene-copy strong { color: var(--deep); }
+    .scene-copy span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+    .field-title { display: block; margin: 20px 0 9px; font-size: 14px; font-weight: 800; }
+    .radio { display: flex; align-items: center; gap: 10px; min-height: 54px; margin-bottom: 9px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 14px; font-size: 15px; font-weight: 700; }
+    .radio:has(input:checked) { color: var(--deep); border-color: var(--blue); background: var(--tint); }
+    .radio input { width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
+    textarea, input[type="text"], input[type="email"] { width: 100%; border: 1px solid var(--line); border-radius: 13px; color: var(--ink); background: var(--white); }
+    textarea { min-height: 110px; resize: none; padding: 13px; line-height: 1.55; }
+    input[type="text"], input[type="email"] { min-height: 48px; padding: 0 13px; }
+    textarea:focus, input:focus { border-color: var(--blue); }
+    .count { margin-top: 6px; text-align: right; color: var(--muted); font-size: 11px; }
+
+    .card-frame { overflow: hidden; border-radius: 18px; background: #dbe7f8; box-shadow: 0 14px 35px rgba(6,73,173,.16); }
+    .card-frame canvas, .card-frame img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; }
+
+    .choice-grid { display: grid; gap: 9px; margin-top: 12px; }
+    .choice-grid.two { grid-template-columns: 1fr 1fr; }
+    .choice { position: relative; min-height: 52px; padding: 0 44px 0 16px; text-align: left; color: inherit; border: 1.5px solid var(--line); border-radius: 14px; background: var(--white); font-weight: 700; word-break: keep-all; }
+    .choice::after { content: ""; position: absolute; right: 16px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--white); }
+    .choice.selected { color: var(--deep); border-color: var(--blue); background: var(--tint); box-shadow: 0 0 0 3px rgba(20,100,230,.1); }
+    .choice.selected::after { border: 5px solid var(--blue); }
+    .etc-input { display: none; margin-top: 4px; }
+    .etc-input.show { display: block; }
+    .guide { min-height: 18px; margin: 11px 0 0; color: var(--muted); font-size: 12px; }
+    .guide.error { color: #c8352b; }
+
+    .complete-mark { display: grid; place-items: center; width: 54px; height: 54px; margin-bottom: 16px; border-radius: 50%; color: var(--white); background: var(--blue); font-size: 25px; font-weight: 900; }
+    .final-box { margin-top: 14px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+    .final-box .summary-title { color: var(--deep); font-size: 15px; font-weight: 900; letter-spacing: .02em; }
+    .final-row { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .final-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .final-row span { flex: none; color: var(--muted); }
+    .final-row strong { text-align: right; word-break: keep-all; }
+    .email-box { margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 17px; }
+    .email-box p { margin-bottom: 10px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+    .stack { display: grid; gap: 9px; }
+    .small-btn { min-height: 44px; border: 1px solid var(--blue); border-radius: 12px; color: var(--blue); background: var(--white); font-size: 13px; font-weight: 800; }
+    .restart { margin-top: 18px; border: 0; color: var(--muted); background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; z-index: 20; transform: translate(-50%, 14px); max-width: calc(100vw - 32px); padding: 11px 15px; border-radius: 12px; color: #fff; background: rgba(6,33,80,.94); opacity: 0; pointer-events: none; font-size: 12px; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 430px) {
+      .shell { padding: 0; }
+      .app { min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; }
+      .page { min-height: calc(100vh - 110px); min-height: calc(100svh - 110px); }
+      .hero { height: 240px; }
+    }
+    @media (min-width: 768px) {
+      .shell { width: min(100%, 520px); padding-top: 40px; }
+      main { padding: 20px 30px 30px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="app">
+      <header class="topbar">
+        <div class="topline"><span class="logo">MY GWANGANRI MOMENT</span><span id="pageCount">1 / 10</span></div>
+        <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+      </header>
+      <main>
+        <!-- 1. QR 접속 -->
+        <section class="page active" aria-labelledby="title0">
+          <div class="hero" id="hero" role="img" aria-label="광안대교와 광안리 바다"></div>
+          <p class="eyebrow">광안대교 초콜릿 체험</p>
+          <h1 id="title0">초콜릿을 먹고,<br>당신의 <em>광안리</em>를 남겨보세요.</h1>
+          <p class="desc">좋아하는 광안리 풍경을 고르고 추억 또는 앞으로 만들고 싶은 이야기를 남기면 나만의 여행카드가 완성됩니다.</p>
+          <p class="note">응답 내용은 광안대교 초콜릿 상품 개발을 위한 참고자료로만 활용되며, 이름·연락처 등 개인을 식별할 수 있는 정보는 수집하지 않습니다.</p>
+          <div class="actions"><button class="btn btn-primary next" type="button">나의 광안리 만들기</button></div>
+        </section>
+
+        <!-- 2. 광안리 풍경 선택 -->
+        <section class="page" aria-labelledby="title1">
+          <p class="eyebrow">STEP 02</p>
+          <h2 id="title1">오늘 당신의 광안리는?</h2>
+          <p class="desc">여행카드의 배경이 될 풍경을 선택해주세요.</p>
+          <div class="scene-grid" role="radiogroup" aria-label="광안리 풍경 선택">
+            <button class="scene-option" type="button" data-scene="노을" aria-pressed="false">
+              <span class="scene-thumb" data-card="노을"></span>
+              <span class="scene-copy"><strong>노을</strong><span>하루를 물들이는 광안리의 저녁</span></span>
+            </button>
+            <button class="scene-option selected" type="button" data-scene="푸른바다" aria-pressed="true">
+              <span class="scene-thumb" data-card="푸른바다"></span>
+              <span class="scene-copy"><strong>맑은 날의 푸른바다</strong><span>깨끗하고 시원한 광안리</span></span>
+            </button>
+            <button class="scene-option" type="button" data-scene="불꽃축제" aria-pressed="false">
+              <span class="scene-thumb" data-card="불꽃축제"></span>
+              <span class="scene-copy"><strong>불꽃축제</strong><span>기억에 남는 광안리의 밤</span></span>
+            </button>
+          </div>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary next" type="button">다음</button></div>
+        </section>
+
+        <!-- 3. 광안리 방문 경험 -->
+        <section class="page" aria-labelledby="title2">
+          <p class="eyebrow">STEP 03</p>
+          <h2 id="title2">광안리를 방문한 적이 있나요?</h2>
+          <p class="desc">방문 경험에 따라 다음 질문이 달라집니다.</p>
+          <span class="field-title sr-only">광안리 방문 경험</span>
+          <label class="radio"><input type="radio" name="visit" value="visited" checked><span>방문한 적이 있어요</span></label>
+          <label class="radio"><input type="radio" name="visit" value="wish"><span>아직 없지만 방문하고 싶어요</span></label>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary next" type="button">다음</button></div>
+        </section>
+
+        <!-- 4. 나의 광안리 이야기 -->
+        <section class="page" aria-labelledby="title3">
+          <p class="eyebrow">STEP 04</p>
+          <h2 id="title3">나의 광안리 이야기</h2>
+          <label class="field-title" id="storyLabel" for="story">광안리에서 가장 기억에 남는 순간은 무엇인가요?</label>
+          <textarea id="story" maxlength="50" placeholder="예: 친구와 함께 걷던 광안리 밤바다가 가장 기억에 남아요."></textarea>
+          <div class="count"><span id="charCount">0</span> / 50자</div>
+          <label class="field-title" for="nickname">카드에 표시할 이름 또는 닉네임</label>
+          <input id="nickname" type="text" maxlength="10" placeholder="예: 부산여행자">
+          <div class="count">최대 10자</div>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary" id="previewButton" type="button">카드 미리보기</button></div>
+        </section>
+
+        <!-- 5. 여행카드 미리보기 -->
+        <section class="page" aria-labelledby="title4">
+          <p class="eyebrow">STEP 05</p>
+          <h2 id="title4">나의 광안리 카드</h2>
+          <div class="card-frame"><canvas id="cardCanvas" width="1200" height="1500" role="img" aria-label="나의 광안리 여행카드 미리보기"></canvas></div>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">수정</button><button class="btn btn-primary next" type="button">이 카드로 만들기</button></div>
+        </section>
+
+        <!-- 6. 광안대교 초콜릿 구매의향 -->
+        <section class="page" aria-labelledby="title5" data-require="buy">
+          <p class="eyebrow">STEP 06</p>
+          <h2 id="title5">광안대교 초콜릿,<br>실제로 판매된다면?</h2>
+          <p class="desc">관광기념품으로 출시된다면 구매할 의향이 있으신가요?</p>
+          <div class="choice-grid" role="radiogroup" aria-label="광안대교 초콜릿 구매의향" data-field="buy">
+            <button class="choice" type="button" data-value="매우 있음" aria-pressed="false">매우 있음</button>
+            <button class="choice" type="button" data-value="있음" aria-pressed="false">있음</button>
+            <button class="choice" type="button" data-value="보통" aria-pressed="false">보통</button>
+            <button class="choice" type="button" data-value="없음" aria-pressed="false">없음</button>
+            <button class="choice" type="button" data-value="전혀 없음" aria-pressed="false">전혀 없음</button>
+          </div>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary next" type="button" disabled>다음</button></div>
+        </section>
+
+        <!-- 7. 이 제품에서 가장 기대되는 점 -->
+        <section class="page" aria-labelledby="title6" data-require="expect">
+          <p class="eyebrow">STEP 07</p>
+          <h2 id="title6">광안대교 초콜릿에서 가장<br>기대되는 점은 무엇인가요?</h2>
+          <p class="desc">가장 가까운 한 가지를 선택해주세요.</p>
+          <div class="choice-grid" role="radiogroup" aria-label="가장 기대되는 점" data-field="expect">
+            <button class="choice" type="button" data-value="광안대교 모양의 초콜릿" aria-pressed="false">광안대교 모양의 초콜릿</button>
+            <button class="choice" type="button" data-value="부산·광안리 기념품이라는 점" aria-pressed="false">부산·광안리 기념품이라는 점</button>
+            <button class="choice" type="button" data-value="패키지 디자인" aria-pressed="false">패키지 디자인</button>
+            <button class="choice" type="button" data-value="여행 후 보관할 수 있는 기념 요소" aria-pressed="false">여행 후 보관할 수 있는 기념 요소</button>
+            <button class="choice" type="button" data-value="선물하기 좋은 점" aria-pressed="false">선물하기 좋은 점</button>
+            <button class="choice" type="button" data-value="기타" aria-pressed="false">기타</button>
+          </div>
+          <input class="etc-input" id="expectEtc" type="text" maxlength="30" placeholder="기대되는 점을 직접 입력해주세요 (선택)" aria-label="기타 기대되는 점">
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary next" type="button" disabled>다음</button></div>
+        </section>
+
+        <!-- 8. 거주지 / 방문객 유형 -->
+        <section class="page" aria-labelledby="title7" data-require="region">
+          <p class="eyebrow">STEP 08</p>
+          <h2 id="title7">어디에서 오셨나요?</h2>
+          <p class="desc">거주지를 선택해주세요.</p>
+          <div class="choice-grid" role="radiogroup" aria-label="거주지" data-field="region">
+            <button class="choice" type="button" data-value="부산 거주" aria-pressed="false">부산 거주</button>
+            <button class="choice" type="button" data-value="부산 외 국내" aria-pressed="false">부산 외 국내</button>
+            <button class="choice" type="button" data-value="해외" aria-pressed="false">해외</button>
+          </div>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary next" type="button" disabled>다음</button></div>
+        </section>
+
+        <!-- 9. 연령대 -->
+        <section class="page" aria-labelledby="title8" data-require="age">
+          <p class="eyebrow">STEP 09</p>
+          <h2 id="title8">연령대를 알려주세요.</h2>
+          <p class="desc">마지막 질문입니다.</p>
+          <div class="choice-grid two" role="radiogroup" aria-label="연령대" data-field="age">
+            <button class="choice" type="button" data-value="10대" aria-pressed="false">10대</button>
+            <button class="choice" type="button" data-value="20대" aria-pressed="false">20대</button>
+            <button class="choice" type="button" data-value="30대" aria-pressed="false">30대</button>
+            <button class="choice" type="button" data-value="40대" aria-pressed="false">40대</button>
+            <button class="choice" type="button" data-value="50대" aria-pressed="false">50대</button>
+            <button class="choice" type="button" data-value="60대 이상" aria-pressed="false">60대 이상</button>
+          </div>
+          <p class="guide" id="submitGuide" role="status"></p>
+          <div class="actions"><button class="btn btn-secondary prev" type="button">이전</button><button class="btn btn-primary" id="finishButton" type="button" disabled>완료하기</button></div>
+        </section>
+
+        <!-- 10. 완료 -->
+        <section class="page" aria-labelledby="title9">
+          <div class="complete-mark" aria-hidden="true">✓</div>
+          <p class="eyebrow">COMPLETE</p>
+          <h2 id="title9">나의 광안리 카드가<br>완성되었습니다.</h2>
+          <p class="desc">이미지를 저장해 개인 SNS 등에 자유롭게 사용할 수 있습니다. 모바일에서는 카드를 길게 눌러 저장할 수도 있어요.</p>
+          <div class="card-frame"><img id="finalCard" alt="나의 광안리 여행카드"></div>
+          <div class="stack" style="margin-top:14px"><button class="btn btn-primary" id="downloadButton" type="button">여행카드 이미지 저장</button></div>
+          <div class="final-box">
+            <div class="summary-title">MY GWANGANRI MOMENT</div>
+            <div class="final-row"><span>선택한 풍경</span><strong id="finalScene">-</strong></div>
+            <div class="final-row"><span>작성자</span><strong id="finalName">-</strong></div>
+            <div class="final-row"><span>구매의향</span><strong id="finalBuy">-</strong></div>
+            <div class="final-row"><span>기대되는 점</span><strong id="finalExpect">-</strong></div>
+            <div class="final-row"><span>거주지</span><strong id="finalRegion">-</strong></div>
+            <div class="final-row"><span>연령대</span><strong id="finalAge">-</strong></div>
+          </div>
+          <div class="email-box">
+            <p>이메일 주소는 저장되지 않습니다. 주소를 입력하면 기기의 메일 앱이 열리며, 저장한 이미지는 메일 앱에서 직접 첨부해주세요.</p>
+            <div class="stack"><input id="email" type="email" autocomplete="email" placeholder="email@example.com"><button class="small-btn" id="emailButton" type="button">결과 메일 작성</button></div>
+          </div>
+          <button class="restart" id="restartButton" type="button">처음부터 다시 체험하기</button>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="cards.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      // Google Apps Script 웹 앱 배포 URL (apps-script/Code.gs 참고). 비워두면 저장을 건너뜁니다.
+      const SHEET_ENDPOINT = '';
+
+      const TOTAL = 10;
+      const SCENES = {
+        '노을': { key: 'sunset', label: '노을' },
+        '푸른바다': { key: 'sea', label: '맑은 날의 푸른바다' },
+        '불꽃축제': { key: 'fireworks', label: '불꽃축제' }
+      };
+      const DEFAULT_STORY = {
+        visited: '친구와 함께 걷던 광안리 밤바다가 가장 기억에 남아요.',
+        wish: '부산에 간다면 광안리 바다에서 새로운 추억을 만들고 싶어요.'
+      };
+      const DEFAULT_NAME = '부산여행자';
+
+      const pages = [...document.querySelectorAll('.page')];
+      const $ = id => document.getElementById(id);
+      const story = $('story');
+      const nickname = $('nickname');
+      const expectEtc = $('expectEtc');
+      const finishButton = $('finishButton');
+      const cardCanvas = $('cardCanvas');
+
+      const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      const initialState = () => ({ page: 0, scene: '푸른바다', visit: 'visited', story: '', name: DEFAULT_NAME, buy: '', expect: '', region: '', age: '', id: newId(), submitted: false });
+      let state = initialState();
+
+      const toast = message => {
+        const el = $('toast');
+        el.textContent = message;
+        el.classList.add('show');
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => el.classList.remove('show'), 2300);
+      };
+
+      /* ---------- 카드 이미지 ---------- */
+      const cardSrc = scene => (window.CARD_IMAGES || {})[SCENES[scene].key] || `images/card-${SCENES[scene].key}.jpg`;
+      const imageCache = {};
+      const loadImage = scene => imageCache[scene] || (imageCache[scene] = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = cardSrc(scene);
+      }));
+      Object.keys(SCENES).forEach(loadImage);
+
+      $('hero').style.backgroundImage = `url("${cardSrc('푸른바다')}")`;
+      document.querySelectorAll('.scene-thumb').forEach(el => { el.style.backgroundImage = `url("${cardSrc(el.dataset.card)}")`; });
+
+      const fontsReady = (async () => {
+        try {
+          await Promise.all([
+            document.fonts.load('40px "Nanum Pen Script"', '광안리'),
+            document.fonts.load('800 20px "Noto Sans KR"', '광안리')
+          ]);
+        } catch (e) { /* 오프라인이면 기본 글꼴 사용 */ }
+      })();
+
+      // 카드 원본(640x800) 좌표 기준 문구 영역
+      const QUOTE = { cx: 321, cy: 560, width: 370, maxHeight: 118 };
+      const NICK = { right: 540, y: 652 };
+
+      const splitLines = (ctx, text, maxWidth) => {
+        const lines = [];
+        let line = '';
+        const push = word => {
+          const test = line ? `${line} ${word}` : word;
+          if (ctx.measureText(test).width <= maxWidth) { line = test; return; }
+          if (line) { lines.push(line); line = ''; }
+          if (ctx.measureText(word).width <= maxWidth) { line = word; return; }
+          for (const char of word) {  // 띄어쓰기 없는 긴 문장은 글자 단위로 줄바꿈
+            if (ctx.measureText(line + char).width > maxWidth && line) { lines.push(line); line = char; } else line += char;
+          }
+        };
+        text.split(/\s+/).filter(Boolean).forEach(push);
+        if (line) lines.push(line);
+        return lines;
+      };
+
+      const drawCard = async canvas => {
+        const [img] = await Promise.all([loadImage(state.scene), fontsReady]);
+        const ctx = canvas.getContext('2d');
+        const s = canvas.width / 640;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#1f2533';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        let size = 36, lines;
+        for (; size >= 22; size -= 2) {
+          ctx.font = `${size * s}px "Nanum Pen Script", cursive`;
+          lines = splitLines(ctx, state.story, QUOTE.width * s);
+          if (lines.length * size * 1.18 <= QUOTE.maxHeight) break;
+        }
+        size = Math.max(size, 22);
+        const lineHeight = size * 1.18 * s;
+        lines = lines.slice(0, 4);
+        const top = QUOTE.cy * s - (lines.length - 1) * lineHeight / 2;
+        lines.forEach((text, i) => ctx.fillText(text, QUOTE.cx * s, top + i * lineHeight));
+
+        ctx.textAlign = 'right';
+        ctx.font = `800 ${17 * s}px "Noto Sans KR", "Malgun Gothic", sans-serif`;
+        ctx.fillText(`- ${state.name} -`, NICK.right * s, NICK.y * s);
+      };
+
+      /* ---------- 페이지 이동 ---------- */
+      const updateRequired = page => {
+        const field = page.dataset.require;
+        if (!field) return;
+        const next = page.querySelector('.next, #finishButton');
+        if (next) next.disabled = !state[field];
+      };
+
+      const showPage = number => {
+        state.page = Math.max(0, Math.min(TOTAL - 1, number));
+        pages.forEach((page, index) => page.classList.toggle('active', index === state.page));
+        progressBar.style.width = `${((state.page + 1) / TOTAL) * 100}%`;
+        $('pageCount').textContent = `${state.page + 1} / ${TOTAL}`;
+        updateRequired(pages[state.page]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      const progressBar = $('progressBar');
+
+      document.querySelectorAll('.next').forEach(button => button.addEventListener('click', () => showPage(state.page + 1)));
+      document.querySelectorAll('.prev').forEach(button => button.addEventListener('click', () => showPage(state.page - 1)));
+
+      const selectIn = (buttons, chosen) => buttons.forEach(item => {
+        const selected = item === chosen;
+        item.classList.toggle('selected', selected);
+        item.setAttribute('aria-pressed', String(selected));
+      });
+
+      const sceneButtons = [...document.querySelectorAll('.scene-option')];
+      sceneButtons.forEach(button => button.addEventListener('click', () => {
+        state.scene = button.dataset.scene;
+        selectIn(sceneButtons, button);
+      }));
+
+      document.querySelectorAll('.choice-grid[data-field]').forEach(group => {
+        const field = group.dataset.field;
+        const buttons = [...group.querySelectorAll('.choice')];
+        buttons.forEach(button => button.addEventListener('click', () => {
+          state[field] = button.dataset.value;
+          selectIn(buttons, button);
+          if (field === 'expect') {
+            expectEtc.classList.toggle('show', state.expect === '기타');
+            if (state.expect === '기타') expectEtc.focus();
+          }
+          updateRequired(group.closest('.page'));
+        }));
+      });
+
+      /* ---------- 방문 경험 / 이야기 ---------- */
+      document.querySelectorAll('input[name="visit"]').forEach(input => input.addEventListener('change', () => {
+        if (!input.checked) return;
+        state.visit = input.value;
+        $('storyLabel').textContent = input.value === 'wish'
+          ? '광안리에서 어떤 추억을 만들고 싶나요?'
+          : '광안리에서 가장 기억에 남는 순간은 무엇인가요?';
+        story.placeholder = input.value === 'wish'
+          ? '예: 광안대교 야경을 보며 소중한 사람과 산책하고 싶어요.'
+          : '예: 친구와 함께 걷던 광안리 밤바다가 가장 기억에 남아요.';
+      }));
+
+      story.addEventListener('input', () => { $('charCount').textContent = [...story.value].length; });
+
+      $('previewButton').addEventListener('click', async () => {
+        state.story = story.value.replace(/\s+/g, ' ').trim() || DEFAULT_STORY[state.visit];
+        state.name = nickname.value.trim() || DEFAULT_NAME;
+        showPage(state.page + 1);
+        try { await drawCard(cardCanvas); } catch (e) { toast('카드 이미지를 불러오지 못했습니다.'); }
+      });
+
+      /* ---------- Google Sheets 저장 ---------- */
+      const payload = () => ({
+        id: state.id,
+        scene: SCENES[state.scene].label,
+        visit: state.visit === 'wish' ? '방문 희망' : '방문 경험 있음',
+        story: state.story,
+        nickname: state.name,
+        buy: state.buy,
+        expect: state.expect,
+        expectEtc: state.expect === '기타' ? expectEtc.value.trim() : '',
+        region: state.region,
+        age: state.age
+      });
+
+      const submitToSheet = async () => {
+        if (!SHEET_ENDPOINT) { console.info('[광안대교 체험] SHEET_ENDPOINT 미설정 - 저장 건너뜀', payload()); return; }
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+        try {
+          // text/plain + no-cors: Apps Script로 CORS 사전요청 없이 전송
+          await fetch(SHEET_ENDPOINT, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload()),
+            signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      finishButton.addEventListener('click', async () => {
+        if (!state.age) return;
+        const guide = $('submitGuide');
+        finishButton.disabled = true;
+        finishButton.textContent = '저장 중…';
+        guide.classList.remove('error');
+        guide.textContent = '';
+        try {
+          if (!state.submitted) { await submitToSheet(); state.submitted = true; }
+        } catch (e) {
+          guide.classList.add('error');
+          guide.textContent = '응답을 저장하지 못했습니다. 네트워크 연결을 확인한 뒤 다시 눌러주세요.';
+          finishButton.disabled = false;
+          finishButton.textContent = '완료하기';
+          return;
+        }
+        finishButton.textContent = '완료하기';
+
+        $('finalScene').textContent = SCENES[state.scene].label;
+        $('finalName').textContent = state.name;
+        $('finalBuy').textContent = state.buy;
+        $('finalExpect').textContent = state.expect === '기타' && expectEtc.value.trim() ? `기타 (${expectEtc.value.trim()})` : state.expect;
+        $('finalRegion').textContent = state.region;
+        $('finalAge').textContent = state.age;
+        try {
+          await drawCard(cardCanvas);
+          $('finalCard').src = cardCanvas.toDataURL('image/png');
+        } catch (e) { /* 미리보기 단계에서 이미 안내됨 */ }
+        showPage(TOTAL - 1);
+      });
+
+      /* ---------- 완료 화면 ---------- */
+      $('downloadButton').addEventListener('click', () => {
+        cardCanvas.toBlob(blob => {
+          if (!blob) { toast('이미지를 만들지 못했습니다. 카드를 길게 눌러 저장해주세요.'); return; }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = '나의_광안리_여행카드.png';
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          toast('여행카드 이미지를 저장했습니다.');
+        }, 'image/png');
+      });
+
+      $('emailButton').addEventListener('click', () => {
+        const email = $('email');
+        if (!email.value || !email.checkValidity()) { email.reportValidity(); return; }
+        const subject = encodeURIComponent('나의 광안리 여행카드');
+        const body = encodeURIComponent(`선택한 풍경: ${SCENES[state.scene].label}\n나의 이야기: ${state.story}\n작성자: ${state.name}\n광안대교 초콜릿 구매의향: ${state.buy}\n\n저장한 여행카드 이미지는 직접 첨부해주세요.`);
+        window.location.href = `mailto:${encodeURIComponent(email.value)}?subject=${subject}&body=${body}`;
+      });
+
+      $('restartButton').addEventListener('click', () => {
+        state = initialState();
+        story.value = ''; nickname.value = ''; expectEtc.value = ''; $('email').value = '';
+        $('charCount').textContent = '0';
+        expectEtc.classList.remove('show');
+        const visited = document.querySelector('input[name="visit"][value="visited"]');
+        visited.checked = true;
+        visited.dispatchEvent(new Event('change'));
+        selectIn(sceneButtons, sceneButtons.find(item => item.dataset.scene === state.scene));
+        document.querySelectorAll('.choice').forEach(item => { item.classList.remove('selected'); item.setAttribute('aria-pressed', 'false'); });
+        $('submitGuide').textContent = '';
+        $('finalCard').removeAttribute('src');
+        showPage(0);
+      });
+
+      showPage(0);
+    })();
+  </script>
+</body>
+</html>
