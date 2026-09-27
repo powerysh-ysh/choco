@@ -1,7 +1,7 @@
 """새 여행카드 배경 4장 생성 (야경 / 드론쇼 / 해변 산책 / 일출).
 
 기존 카드(images/card-*.jpg)와 같은 640x800 레이아웃:
-상단 타이틀, 가운데 광안대교, 문구 상자(83~560, 495~630), 하단 로고.
+상단 타이틀, 가운데 광안대교, 문구 상자(83~560, 495~672, 닉네임 포함), 하단 로고.
 실행: python tools/make_cards.py  ->  images/card-{night,drone,beach,sunrise}.jpg
 """
 import math
@@ -263,21 +263,21 @@ def overlay(img, quote_color=(138, 90, 58), shadow=0.35, bottom_shade=0.35):
     img = Image.alpha_composite(img, layer)
 
     # 문구 상자 (반투명 흰 유리)
-    box = (83, 495, 560, 630)
+    box = (83, 495, 560, 672)
     blur = img.filter(ImageFilter.GaussianBlur(p(8)))
     mask = Image.new('L', (W, H), 0)
     ImageDraw.Draw(mask).rounded_rectangle([p(box[0]), p(box[1]), p(box[2]), p(box[3])], radius=p(14), fill=255)
     img = Image.composite(blur, img, mask)
     white = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     wd = ImageDraw.Draw(white)
-    wd.rounded_rectangle([p(box[0]), p(box[1]), p(box[2]), p(box[3])], radius=p(14), fill=(255, 255, 255, 200),
+    wd.rounded_rectangle([p(box[0]), p(box[1]), p(box[2]), p(box[3])], radius=p(14), fill=(255, 255, 255, 228),
                          outline=(255, 255, 255, 255), width=p(1.5))
     img = Image.alpha_composite(img, white)
     # 따옴표
     q = ImageFont.truetype(str(FONTS / 'georgia.ttf'), p(64))
     qd = ImageDraw.Draw(img)
     qd.text((p(118), p(500)), '\u201c', font=q, fill=quote_color + (255,), anchor='mm')
-    qd.text((p(532), p(640)), '\u201d', font=q, fill=quote_color + (255,), anchor='mm')
+    qd.text((p(548), p(690)), '\u201d', font=q, fill=quote_color + (255,), anchor='mm')
     return img.convert('RGB')
 
 
